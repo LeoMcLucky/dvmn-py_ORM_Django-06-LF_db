@@ -20,3 +20,10 @@ def serialize_tag(tag):
         'title': tag.title,
         'posts_with_tag': len(Post.objects.filter(tags=tag)),
     }
+
+
+# def serialize_tag_optimized(tag):
+#     return {
+#         'title': tag.title,
+#         'posts_with_tag': tag.posts_count,
+#     }
