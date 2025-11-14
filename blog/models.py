@@ -6,21 +6,20 @@ from django.db.models import Count, Prefetch
 
 class PostQuerySet(models.QuerySet):
 
-    def year(self, year):
-        return self.filter(
-            published_at__year=year).order_by('published_at')
-
     def popular(self):
         return self.annotate(
             likes_count=Count('likes')
         ).order_by('-likes_count')
 
     def fetch_with_comments_count(self):
-        """Добавляет каждому посту атрибут `comments_count`, содержащий количество комментариев.
-        Но не загружает в базу.
-        Снижает нагрузку на базу которая будет при использовании второго annotate.
+        """Добавляет каждому посту атрибут `comments_count`, содержащий количество комментариев
+        по id. Но не загружает в базу и не делает join. Добавляет поле на уровне python.
 
-        Используйте функцию если много комментариев.
+        Функция снижает нагрузку на базу которая происходит при использовании второго annotate.
+        Так как при двух annotate столбцы перемножаются между собой создавая большую нагрузку на базу.
+
+        Используйте функцию если Вам нужно 2 annotate.
+
         """
 
         popular_posts_ids = [post.id for post in self]
