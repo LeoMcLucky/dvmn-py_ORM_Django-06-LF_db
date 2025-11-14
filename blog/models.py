@@ -1,21 +1,19 @@
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 
 
 class PostQuerySet(models.QuerySet):
 
     def year(self, year):
-        posts_at_year = self.filter(
+        return self.filter(
             published_at__year=year).order_by('published_at')
-        return posts_at_year
 
     def popular(self):
-        popular_posts = self.annotate(
+        return self.annotate(
             likes_count=Count('likes')
         ).order_by('-likes_count')
-        return popular_posts
 
     def fetch_with_comments_count(self):
         """Добавляет каждому посту атрибут `comments_count`, содержащий количество комментариев.
@@ -39,6 +37,15 @@ class PostQuerySet(models.QuerySet):
         for post in self:
             post.comments_count = count_for_id[post.id]
         return self
+
+    def prefetch_author_and_tags_with_posts_count(self):
+        return self.prefetch_related(
+            'author',
+            Prefetch(
+                'tags',
+                queryset=Tag.objects.annotate(posts_count=Count('posts'))
+            )
+        )
 
 
 class TagQuerySet(models.QuerySet):
